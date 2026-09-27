@@ -16,6 +16,7 @@ let remoteReviews = [];
 let remoteReviewsReady = false;
 let remoteAnnouncements = null;
 let remoteAnnouncementsReady = false;
+let lastFirebaseError = "";
 
 function createId(prefix) {
   if (globalThis.crypto?.randomUUID) {
@@ -568,16 +569,21 @@ function collectionPayload(items) {
 function saveProducts(products) {
   const normalized = normalizeState({ products }).products;
   const previousProducts = remoteProducts;
+  lastFirebaseError = "";
 
   return firebaseAuthReady.then((user) => {
-    if (!user) return false;
+    if (!user) {
+      lastFirebaseError = "auth-required";
+      return false;
+    }
     return set(ref(firebaseDatabase, PRODUCTS_PATH), collectionPayload(normalized))
       .then(() => {
         remoteProducts = normalized;
         remoteProductsReady = true;
         return true;
       })
-      .catch(() => {
+      .catch((error) => {
+        lastFirebaseError = error?.code || error?.message || "firebase-write-failed";
         remoteProducts = previousProducts;
         remoteProductsReady = true;
         return false;
@@ -1211,8 +1217,13 @@ function renderAdminProducts() {
 
       if (action === "remove") {
         if (!window.confirm(currentLanguage === "en" ? "Delete this product?" : "Supprimer ce produit ?")) return;
+        const previousProducts = structuredClone(appState.products);
         appState.products = appState.products.filter((product) => product.id !== productId);
-        await saveState();
+        const saved = await saveState();
+        if (!saved) {
+          appState.products = previousProducts;
+          setAdminFormMessage(`Impossible de supprimer le produit dans Firebase (${lastFirebaseError}).`, false);
+        }
         renderProducts();
         renderAdminProducts();
         return;
@@ -1372,6 +1383,7 @@ if (productForm) {
       return;
     }
 
+    const previousProducts = structuredClone(appState.products);
     const existingIndex = appState.products.findIndex((entry) => entry.id === product.id);
     if (existingIndex >= 0) {
       appState.products[existingIndex] = product;
@@ -1381,13 +1393,16 @@ if (productForm) {
 
     editingProductId = null;
     const saved = await saveState();
+    if (!saved) appState.products = previousProducts;
     renderProducts();
     renderAdminProducts();
     resetProductForm("create");
     setAdminFormMessage(
       saved
         ? (currentLanguage === "en" ? "Product saved successfully." : "Produit enregistré avec succès.")
-        : (currentLanguage === "en" ? "Product could not be saved to Firebase." : "Le produit n’a pas pu être enregistré dans Firebase."),
+        : (currentLanguage === "en"
+            ? `Product could not be saved to Firebase (${lastFirebaseError}).`
+            : `Le produit n’a pas pu être enregistré dans Firebase (${lastFirebaseError}).`),
       saved
     );
   });
