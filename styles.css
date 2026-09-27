@@ -2185,3 +2185,41 @@ textarea {
     gap: 18px;
   }
 }
+
+/* Public catalog rails stay scrollable without widening the document. */
+#products .product-grid,
+#announcements .announcement-public-grid {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 18px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0 2px 14px;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+}
+
+#products .product-card {
+  flex: 0 0 min(560px, calc(50% - 9px));
+  min-width: 0;
+  scroll-snap-align: start;
+}
+
+#announcements .announcement-public-item {
+  flex: 0 0 min(360px, calc(33.333% - 12px));
+  min-width: 0;
+  scroll-snap-align: start;
+}
+
+@media (max-width: 767px) {
+  #products .product-grid,
+  #announcements .announcement-public-grid {
+    gap: 16px;
+  }
+
+  #products .product-card,
+  #announcements .announcement-public-item {
+    flex-basis: calc(100% - 8px);
+  }
+}
