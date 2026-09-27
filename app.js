@@ -5,7 +5,6 @@ const WHATSAPP_NUMBER = "22879420932";
 const STORAGE_KEY = "franckefootball_store_v1";
 const ORDER_KEY = "franckefootball_orders_v1";
 const REVIEW_KEY = "franckefootball_reviews_v1";
-const ANNOUNCEMENT_KEY = "franckefootball_announcements_v1";
 const LANG_KEY = "franckefootball_lang_v1";
 const ANNOUNCEMENTS_PATH = "announcements";
 let remoteAnnouncements = null;
@@ -566,27 +565,31 @@ function loadReviews() {
 }
 
 function loadAnnouncements() {
-  if (remoteAnnouncementsReady) return remoteAnnouncements;
-  const parsed = readStorageJson(ANNOUNCEMENT_KEY, null);
-  return Array.isArray(parsed) && parsed.length ? parsed : structuredClone(defaultAnnouncements);
+  return remoteAnnouncementsReady ? remoteAnnouncements : [];
 }
 
 function saveAnnouncements(announcements) {
   const normalized = Array.isArray(announcements) ? announcements.filter(Boolean) : [];
-  const localSaved = writeStorageJson(ANNOUNCEMENT_KEY, normalized);
-  remoteAnnouncements = normalized;
-  remoteAnnouncementsReady = true;
+  const previousAnnouncements = remoteAnnouncements;
 
   const payload = {
     _meta: { updatedAt: new Date().toISOString() },
-    ...Object.fromEntries(normalized.map((announcement) => [announcement.id, announcement])),
+    items: Object.fromEntries(normalized.map((announcement) => [announcement.id, announcement])),
   };
 
   return firebaseAuthReady.then((user) => {
-    if (!user) return localSaved;
+    if (!user) return false;
     return set(ref(firebaseDatabase, ANNOUNCEMENTS_PATH), payload)
-      .then(() => true)
-      .catch(() => localSaved);
+      .then(() => {
+        remoteAnnouncements = normalized;
+        remoteAnnouncementsReady = true;
+        return true;
+      })
+      .catch(() => {
+        remoteAnnouncements = previousAnnouncements;
+        remoteAnnouncementsReady = Array.isArray(previousAnnouncements);
+        return false;
+      });
   });
 }
 
@@ -1554,14 +1557,12 @@ function escapeAttr(value) {
 
 function subscribeToAnnouncements() {
   onValue(ref(firebaseDatabase, ANNOUNCEMENTS_PATH), (snapshot) => {
-    if (!snapshot.exists()) return;
-
     const data = snapshot.val() || {};
-    remoteAnnouncements = Object.entries(data)
+    const items = data.items && typeof data.items === "object" ? data.items : data;
+    remoteAnnouncements = Object.entries(items)
       .filter(([key, value]) => key !== "_meta" && value && typeof value === "object")
-      .map(([, value]) => value);
+      .map(([key, value]) => ({ id: value.id || key, ...value }));
     remoteAnnouncementsReady = true;
-    writeStorageJson(ANNOUNCEMENT_KEY, remoteAnnouncements);
     renderAnnouncementsAdmin();
     renderAnnouncementsPublic();
   }, () => {
