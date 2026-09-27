@@ -2,9 +2,29 @@
   "rules": {
     ".read": false,
     ".write": false,
+    "products": {
+      ".read": true,
+      ".write": "auth != null"
+    },
     "announcements": {
       ".read": true,
       ".write": "auth != null"
+    },
+    "reviews": {
+      ".read": true,
+      ".write": "auth != null",
+      "$reviewId": {
+        ".write": "!data.exists() && newData.exists()",
+        ".validate": "newData.hasChildren(['id', 'name', 'rating', 'message', 'createdAt']) && newData.child('id').val() == $reviewId"
+      }
+    },
+    "orders": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      "$orderId": {
+        ".write": "auth != null || (!data.exists() && newData.exists())",
+        ".validate": "newData.hasChildren(['id', 'productId', 'productName', 'customerName', 'customerPhone', 'status', 'createdAt']) && newData.child('id').val() == $orderId"
+      }
     }
   }
 }

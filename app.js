@@ -1,12 +1,19 @@
-import { onValue, ref, set } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
+import { onValue, ref, remove, set } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
 import { firebaseAuth, firebaseAuthReady, firebaseDatabase } from "./firebase-config.js";
 
 const WHATSAPP_NUMBER = "22879420932";
-const STORAGE_KEY = "franckefootball_store_v1";
-const ORDER_KEY = "franckefootball_orders_v1";
-const REVIEW_KEY = "franckefootball_reviews_v1";
 const LANG_KEY = "franckefootball_lang_v1";
 const ANNOUNCEMENTS_PATH = "announcements";
+const PRODUCTS_PATH = "products";
+const ORDERS_PATH = "orders";
+const REVIEWS_PATH = "reviews";
+let remoteProducts = [];
+let remoteProductsReady = false;
+let productSeedAttempted = false;
+let remoteOrders = [];
+let remoteOrdersReady = false;
+let remoteReviews = [];
+let remoteReviewsReady = false;
 let remoteAnnouncements = null;
 let remoteAnnouncementsReady = false;
 
@@ -15,15 +22,6 @@ function createId(prefix) {
     return `${prefix}-${globalThis.crypto.randomUUID()}`;
   }
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-}
-
-function writeStorageJson(key, value) {
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-    return true;
-  } catch {
-    return false;
-  }
 }
 
 function writeStorageValue(key, value) {
@@ -48,17 +46,6 @@ function normalizeWhatsAppNumber(value) {
     .replace(/\D+/g, "")
     .replace(/^228/, "228")
     .slice(0, 12);
-}
-
-function readStorageJson(key, fallback) {
-  try {
-    const rawValue = localStorage.getItem(key);
-    if (!rawValue) return fallback;
-    const parsed = JSON.parse(rawValue);
-    return parsed ?? fallback;
-  } catch {
-    return fallback;
-  }
 }
 
 function normalizeLanguage(value) {
@@ -217,7 +204,7 @@ const translations = {
     review_text_label: "Commentaire",
     review_submit: "Publier",
     review_saved: "Merci, votre avis a été publié.",
-    review_storage_error: "Avis affiché temporairement: le stockage local est indisponible.",
+    review_storage_error: "Impossible d’enregistrer l’avis dans Firebase.",
     contact_kicker: "Contact",
     contact_title: "Toujours joignable sur WhatsApp",
     contact_text:
@@ -261,7 +248,7 @@ const translations = {
     orders_approved: "Validées",
     admin_tip_title: "Conseil",
     admin_tip_1: "Les photos sont choisies depuis ton appareil, sans URL à copier.",
-    admin_tip_2: "Les annonces sont synchronisées entre les appareils via Firebase.",
+    admin_tip_2: "Les produits, annonces, commandes et avis sont synchronisés via Firebase.",
     admin_tip_3: "Tu peux publier, modifier et supprimer librement les produits et annonces.",
     form_name: "Nom du produit",
     form_type: "Type",
@@ -350,7 +337,7 @@ const translations = {
     review_text_label: "Comment",
     review_submit: "Publish",
     review_saved: "Thanks, your review has been published.",
-    review_storage_error: "Review shown temporarily: local storage is unavailable.",
+    review_storage_error: "The review could not be saved to Firebase.",
     contact_kicker: "Contact",
     contact_title: "Always reachable on WhatsApp",
     contact_text:
@@ -394,7 +381,7 @@ const translations = {
     orders_approved: "Approved",
     admin_tip_title: "Tip",
     admin_tip_1: "Choose photos from your device without copying an URL.",
-    admin_tip_2: "Announcements are synchronized across devices with Firebase.",
+    admin_tip_2: "Products, announcements, orders, and reviews are synchronized with Firebase.",
     admin_tip_3: "Publish, edit, and remove products and announcements freely.",
     form_name: "Product name",
     form_type: "Type",
@@ -545,41 +532,113 @@ function buildProductWhatsappUrl(product) {
 }
 
 function loadState() {
-  const parsed = readStorageJson(STORAGE_KEY, null);
-  return parsed && Array.isArray(parsed.products)
-    ? normalizeState(parsed)
-    : normalizeState(structuredClone(defaultState));
+  return normalizeState({ products: remoteProductsReady ? remoteProducts : [] });
 }
 
 function loadOrders() {
-  const orders = readStorageJson(ORDER_KEY, []);
-  return Array.isArray(orders) ? orders.filter((order) => order && typeof order === "object") : [];
-}
-
-function saveOrders(orders) {
-  return writeStorageJson(ORDER_KEY, orders);
+  return remoteOrdersReady ? remoteOrders : [];
 }
 
 function loadReviews() {
-  return loadReviewsFromStorage();
+  return remoteReviewsReady ? remoteReviews : [];
 }
 
 function loadAnnouncements() {
   return remoteAnnouncementsReady ? remoteAnnouncements : [];
 }
 
+function collectionItems(value) {
+  const source = value?.items && typeof value.items === "object" ? value.items : value || {};
+  return Object.entries(source)
+    .filter(([key, item]) => key !== "_meta" && item && typeof item === "object")
+    .map(([key, item]) => ({ id: item.id || key, ...item }));
+}
+
+function collectionPayload(items) {
+  return {
+    _meta: { updatedAt: new Date().toISOString() },
+    items: Object.fromEntries(
+      (Array.isArray(items) ? items : [])
+        .filter((item) => item && item.id)
+        .map((item) => [item.id, item])
+    ),
+  };
+}
+
+function saveProducts(products) {
+  const normalized = normalizeState({ products }).products;
+  const previousProducts = remoteProducts;
+
+  return firebaseAuthReady.then((user) => {
+    if (!user) return false;
+    return set(ref(firebaseDatabase, PRODUCTS_PATH), collectionPayload(normalized))
+      .then(() => {
+        remoteProducts = normalized;
+        remoteProductsReady = true;
+        return true;
+      })
+      .catch(() => {
+        remoteProducts = previousProducts;
+        remoteProductsReady = true;
+        return false;
+      });
+  });
+}
+
+function saveOrder(order) {
+  return set(ref(firebaseDatabase, `${ORDERS_PATH}/${order.id}`), order)
+    .then(() => {
+      remoteOrders = [order, ...loadOrders()];
+      remoteOrdersReady = true;
+      return true;
+    })
+    .catch(() => false);
+}
+
+function updateOrder(order) {
+  return firebaseAuthReady.then((user) => {
+    if (!user) return false;
+    return set(ref(firebaseDatabase, `${ORDERS_PATH}/${order.id}`), order)
+      .then(() => true)
+      .catch(() => false);
+  });
+}
+
+function removeOrder(orderId) {
+  return firebaseAuthReady.then((user) => {
+    if (!user) return false;
+    return remove(ref(firebaseDatabase, `${ORDERS_PATH}/${orderId}`))
+      .then(() => true)
+      .catch(() => false);
+  });
+}
+
+function saveReview(review) {
+  return set(ref(firebaseDatabase, `${REVIEWS_PATH}/${review.id}`), review)
+    .then(() => {
+      remoteReviews = [review, ...loadReviews()];
+      remoteReviewsReady = true;
+      return true;
+    })
+    .catch(() => false);
+}
+
+function clearRemoteCollection(path) {
+  return firebaseAuthReady.then((user) => {
+    if (!user) return false;
+    return remove(ref(firebaseDatabase, path))
+      .then(() => true)
+      .catch(() => false);
+  });
+}
+
 function saveAnnouncements(announcements) {
   const normalized = Array.isArray(announcements) ? announcements.filter(Boolean) : [];
   const previousAnnouncements = remoteAnnouncements;
 
-  const payload = {
-    _meta: { updatedAt: new Date().toISOString() },
-    items: Object.fromEntries(normalized.map((announcement) => [announcement.id, announcement])),
-  };
-
   return firebaseAuthReady.then((user) => {
     if (!user) return false;
-    return set(ref(firebaseDatabase, ANNOUNCEMENTS_PATH), payload)
+    return set(ref(firebaseDatabase, ANNOUNCEMENTS_PATH), collectionPayload(normalized))
       .then(() => {
         remoteAnnouncements = normalized;
         remoteAnnouncementsReady = true;
@@ -591,15 +650,6 @@ function saveAnnouncements(announcements) {
         return false;
       });
   });
-}
-
-function loadReviewsFromStorage() {
-  const stored = readStorageJson(REVIEW_KEY, null);
-  return Array.isArray(stored) && stored.length ? stored : structuredClone(defaultReviews);
-}
-
-function saveReviews(reviews) {
-  return writeStorageJson(REVIEW_KEY, reviews);
 }
 
 function setAdminFormMessage(message, isSuccess = true) {
@@ -925,7 +975,7 @@ function renderAnnouncementsPublic() {
 }
 
 function saveState() {
-  return writeStorageJson(STORAGE_KEY, normalizeState(appState));
+  return saveProducts(appState.products);
 }
 
 function applyLanguage(language) {
@@ -1264,18 +1314,24 @@ function renderOrders() {
     .join("");
 
   ordersList.querySelectorAll("button[data-order-action]").forEach((button) => {
-    button.addEventListener("click", () => {
+    button.addEventListener("click", async () => {
       const orders = loadOrders();
       const orderId = button.getAttribute("data-order-id");
       const action = button.getAttribute("data-order-action");
-      const updated = orders.filter(Boolean).map((order) => {
-        if (order.id !== orderId) return order;
-        if (action === "remove") return null;
-        return { ...order, status: action === "approve" ? (currentLanguage === "en" ? "Approved" : "Validée") : (currentLanguage === "en" ? "Pending" : "En attente") };
-      }).filter(Boolean);
+      const order = orders.find((entry) => entry.id === orderId);
+      if (!order) return;
 
-      saveOrders(updated);
-      renderOrders();
+      const saved = action === "remove"
+        ? await removeOrder(orderId)
+        : await updateOrder({
+            ...order,
+            status: action === "approve"
+              ? (currentLanguage === "en" ? "Approved" : "Validée")
+              : (currentLanguage === "en" ? "Pending" : "En attente"),
+          });
+
+      if (saved) renderOrders();
+      else setAdminFormMessage("Impossible de synchroniser cette commande avec Firebase.", false);
     });
   });
 }
@@ -1324,14 +1380,14 @@ if (productForm) {
     }
 
     editingProductId = null;
-    const saved = saveState();
+    const saved = await saveState();
     renderProducts();
     renderAdminProducts();
     resetProductForm("create");
     setAdminFormMessage(
       saved
         ? (currentLanguage === "en" ? "Product saved successfully." : "Produit enregistré avec succès.")
-        : (currentLanguage === "en" ? "Product shown temporarily: local storage is unavailable." : "Produit affiché temporairement: le stockage local est indisponible."),
+        : (currentLanguage === "en" ? "Product could not be saved to Firebase." : "Le produit n’a pas pu être enregistré dans Firebase."),
       saved
     );
   });
@@ -1361,23 +1417,26 @@ if (reviewForm) {
     const name = String(formData.get("name") || "").trim();
     const message = String(formData.get("message") || "").trim();
     if (!name || !message) return;
-    const reviews = loadReviews();
-    reviews.unshift({
+    const review = {
       id: createId("review"),
       name,
       rating: Number(formData.get("rating")),
       message,
       createdAt: new Date().toISOString(),
-    });
-    const saved = saveReviews(reviews);
-    reviewForm.reset();
-    setReviewMessage(saved ? translate("review_saved") : translate("review_storage_error"), !saved);
-    renderReviews();
+    };
+    const saved = await saveReview(review);
+    if (saved) {
+      reviewForm.reset();
+      setReviewMessage(translate("review_saved"));
+      renderReviews();
+    } else {
+      setReviewMessage("Impossible d’enregistrer le commentaire dans Firebase.", true);
+    }
   });
 }
 
 if (purchaseForm) {
-  purchaseForm.addEventListener("submit", (event) => {
+  purchaseForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     if (!selectedPurchaseProduct) return;
 
@@ -1404,13 +1463,17 @@ if (purchaseForm) {
       createdAt: new Date().toISOString(),
     };
 
-    const saved = saveOrders([order, ...loadOrders()]);
+    const saved = await saveOrder(order);
     const whatsappMessage = currentLanguage === "en"
       ? `Hello, I want to buy "${selectedPurchaseProduct.name}". My name is ${customerName}. WhatsApp: ${customerPhone}.${customerEmail ? ` Email: ${customerEmail}.` : ""}${message ? ` Message: ${message}` : ""}`
       : `Bonjour, je veux acheter "${selectedPurchaseProduct.name}". Je m'appelle ${customerName}. WhatsApp : ${customerPhone}.${customerEmail ? ` E-mail : ${customerEmail}.` : ""}${message ? ` Message : ${message}` : ""}`;
 
-    renderOrders();
-    updateAdminStats();
+    if (saved) {
+      remoteOrders = [order, ...loadOrders()];
+      remoteOrdersReady = true;
+      renderOrders();
+      updateAdminStats();
+    }
     setPurchaseMessage(
       saved
         ? (currentLanguage === "en" ? "Request saved. Opening WhatsApp…" : "Demande enregistrée. Ouverture de WhatsApp…")
@@ -1503,13 +1566,23 @@ if (document.querySelector('input[name="announcementTitle"]')) {
 
 if (resetStoreButton) {
   resetStoreButton.addEventListener("click", async () => {
-    if (!window.confirm(currentLanguage === "en" ? "Reset all local store data?" : "Réinitialiser toutes les données locales de la boutique ?")) return;
+    if (!window.confirm(currentLanguage === "en" ? "Reset all shared store data?" : "Réinitialiser toutes les données partagées de la boutique ?")) return;
     editingProductId = null;
-    Object.assign(appState, normalizeState(structuredClone(defaultState)));
-    await saveAnnouncements(structuredClone(defaultAnnouncements));
-    await saveState();
-    await saveOrders([]);
-    await saveReviews(structuredClone(defaultReviews));
+    const [productsSaved, announcementsSaved, ordersSaved, reviewsSaved] = await Promise.all([
+      saveProducts(structuredClone(defaultState.products)),
+      saveAnnouncements(structuredClone(defaultAnnouncements)),
+      clearRemoteCollection(ORDERS_PATH),
+      clearRemoteCollection(REVIEWS_PATH),
+    ]);
+    if (!productsSaved || !announcementsSaved || !ordersSaved || !reviewsSaved) {
+      setAdminFormMessage("Impossible de réinitialiser toutes les données dans Firebase.", false);
+      return;
+    }
+    Object.assign(appState, normalizeState({ products: remoteProducts }));
+    remoteOrders = [];
+    remoteOrdersReady = true;
+    remoteReviews = [];
+    remoteReviewsReady = true;
     renderProducts();
     renderAdminProducts();
     renderOrders();
@@ -1517,7 +1590,7 @@ if (resetStoreButton) {
     renderAnnouncementsAdmin();
     renderAnnouncementsPublic();
     resetProductForm("create");
-    setAdminFormMessage("La boutique a été réinitialisée.", true);
+    setAdminFormMessage("La boutique partagée a été réinitialisée.", true);
     if (productForm) productForm.reset();
   });
 }
@@ -1570,6 +1643,61 @@ function subscribeToAnnouncements() {
   });
 }
 
+function subscribeToProducts() {
+  onValue(ref(firebaseDatabase, PRODUCTS_PATH), (snapshot) => {
+    if (!snapshot.exists()) {
+      remoteProducts = [];
+      remoteProductsReady = true;
+      renderProducts();
+      renderAdminProducts();
+
+      if (!productSeedAttempted && document.body.dataset.page === "admin") {
+        productSeedAttempted = true;
+        firebaseAuthReady.then((user) => {
+          if (user) return saveProducts(structuredClone(defaultState.products));
+          return false;
+        });
+      }
+      return;
+    }
+
+    remoteProducts = collectionItems(snapshot.val()).map(normalizeProduct);
+    remoteProductsReady = true;
+    appState.products = remoteProducts;
+    renderProducts();
+    renderAdminProducts();
+  }, () => {
+    remoteProducts = [];
+    remoteProductsReady = true;
+    renderProducts();
+    renderAdminProducts();
+  });
+}
+
+function subscribeToOrders() {
+  onValue(ref(firebaseDatabase, ORDERS_PATH), (snapshot) => {
+    remoteOrders = snapshot.exists() ? collectionItems(snapshot.val()) : [];
+    remoteOrdersReady = true;
+    renderOrders();
+  }, () => {
+    remoteOrders = [];
+    remoteOrdersReady = true;
+    renderOrders();
+  });
+}
+
+function subscribeToReviews() {
+  onValue(ref(firebaseDatabase, REVIEWS_PATH), (snapshot) => {
+    remoteReviews = snapshot.exists() ? collectionItems(snapshot.val()) : [];
+    remoteReviewsReady = true;
+    renderReviews();
+  }, () => {
+    remoteReviews = [];
+    remoteReviewsReady = true;
+    renderReviews();
+  });
+}
+
 applyLanguage(currentLanguage);
 syncStaticLinks();
 renderProducts();
@@ -1579,8 +1707,10 @@ renderAnnouncementsAdmin();
 renderAnnouncementsPublic();
 updateAdminStats();
 resetProductForm("create");
-subscribeToAnnouncements();
 if (document.querySelector('input[name="announcementTitle"]')) {
   renderAnnouncementPreview();
 }
-saveState();
+subscribeToProducts();
+subscribeToOrders();
+subscribeToReviews();
+subscribeToAnnouncements();
