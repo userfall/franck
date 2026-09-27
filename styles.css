@@ -2272,8 +2272,32 @@ textarea {
   visibility: hidden;
 }
 
+/* Give the visual asset the first word in each commerce card. */
+#products .product-gallery .shot:first-child {
+  grid-column: 1 / -1;
+  aspect-ratio: 16 / 10;
+  min-height: 260px;
+}
+
+#products .product-gallery .shot:not(:first-child) {
+  aspect-ratio: 1.25 / 1;
+}
+
+#announcements .announcement-public-item img {
+  height: 300px;
+}
+
 @media (max-width: 767px) {
   .carousel-arrow {
     display: none;
+  }
+
+  #products .product-gallery .shot:first-child {
+    min-height: 190px;
+  }
+
+  #announcements .announcement-public-item img {
+    height: auto;
+    aspect-ratio: 16 / 10;
   }
 }
