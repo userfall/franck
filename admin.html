@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#07111f" />
+    <title>Franckefootball Admin</title>
+    <link rel="icon" href="logo.jpeg" type="image/jpeg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body data-page="admin">
+    <div class="bg-orb bg-orb-a"></div>
+    <div class="bg-orb bg-orb-b"></div>
+
+    <header class="topbar">
+      <a class="brand" href="index.html" aria-label="Franckefootball.com">
+        <span class="brand-mark">
+          <img src="logo.jpeg" alt="" class="brand-logo" />
+        </span>
+        <span>
+          <strong>Franckefootball Admin</strong>
+          <small>Dashboard de gestion</small>
+        </span>
+      </a>
+
+      <nav class="nav">
+        <a href="index.html">Site public</a>
+        <a href="#dashboard" data-i18n="nav_admin">Admin</a>
+      </nav>
+
+      <div class="toolbar">
+        <label class="lang-switch" aria-label="Language selector">
+          <span>FR</span>
+          <input id="langToggle" type="checkbox" />
+          <span>EN</span>
+        </label>
+        <a class="primary-btn" href="index.html" target="_blank" rel="noopener noreferrer" data-i18n="admin_view_site">Voir sur le site</a>
+        <button class="ghost-btn" id="adminLogoutButton" type="button" data-i18n="logout">Déconnexion</button>
+      </div>
+    </header>
+
+    <main id="dashboard">
+      <section class="section">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker" data-i18n="admin_kicker">Admin</p>
+            <h2 data-i18n="admin_title">Gestion des produits et commandes</h2>
+          </div>
+          <p data-i18n="admin_intro">
+            Espace séparé pour ajouter des produits, modifier les prix, gérer les images et suivre les commandes.
+          </p>
+        </div>
+
+        <div class="admin-summary" aria-label="Résumé de gestion">
+          <article class="admin-stat">
+              <span data-i18n="admin_products">Produits</span>
+            <strong id="adminProductCount">0</strong>
+          </article>
+          <article class="admin-stat">
+              <span data-i18n="admin_orders">Commandes</span>
+            <strong id="adminOrderCount">0</strong>
+          </article>
+          <article class="admin-stat">
+              <span data-i18n="admin_status">État</span>
+            <strong id="adminStatusText">Prêt</strong>
+          </article>
+        </div>
+
+        <div class="admin-layout">
+          <form id="productForm" class="panel admin-form">
+            <div class="admin-form-header">
+              <div>
+                <p class="section-kicker" data-i18n="admin_products">Produits</p>
+                <h3 id="productFormTitle" data-i18n="form_add_title">Ajouter un produit</h3>
+              </div>
+              <button class="ghost-btn compact" id="newProductButton" type="button" data-i18n="new_product">Nouveau produit</button>
+            </div>
+
+            <p id="adminFormMessage" class="admin-form-message" aria-live="polite"></p>
+
+            <div class="form-row">
+              <label>
+                <span data-i18n="form_name">Nom du produit</span>
+                <input name="name" type="text" required placeholder="Compte eFootball Elite" />
+              </label>
+              <label>
+                <span data-i18n="form_type">Type</span>
+                <select name="type">
+                  <option value="account" data-i18n="type_account">Compte</option>
+                  <option value="coins" data-i18n="type_coins">Pièces</option>
+                </select>
+              </label>
+            </div>
+            <div class="form-row">
+              <label>
+                <span data-i18n="form_price">Prix</span>
+                <input name="price" type="text" required placeholder="25 000 FCFA" />
+              </label>
+              <label>
+                <span data-i18n="form_badge">Badge</span>
+                <input name="badge" type="text" placeholder="Hot deal" />
+              </label>
+            </div>
+            <label>
+              <span data-i18n="form_description">Description FR</span>
+              <textarea name="descriptionFr" rows="3" required placeholder="Description complète en français"></textarea>
+            </label>
+            <input type="hidden" name="descriptionEn" value="" />
+            <div class="upload-box">
+              <div class="upload-actions">
+                <button class="primary-btn compact" id="productImageButton" type="button" data-i18n="choose_photos">Choisir les photos</button>
+                <span class="upload-note" id="productImageCount" data-i18n="upload_limit">Jusqu’à 4 images, optimisées automatiquement</span>
+              </div>
+              <input id="productImageInput" type="file" accept="image/*" multiple hidden />
+            </div>
+            <textarea name="images" hidden aria-hidden="true"></textarea>
+            <div class="admin-preview-box">
+              <strong data-i18n="product_photos">Photos du produit</strong>
+              <div id="imagePreviewList" class="admin-preview-list"></div>
+            </div>
+            <label>
+              <span data-i18n="form_details">Infos importantes</span>
+              <textarea
+                name="details"
+                rows="3"
+                required
+                placeholder="Plateforme: PS / Xbox / Mobile"
+              ></textarea>
+            </label>
+            <div class="admin-preview-box">
+              <strong data-i18n="details_preview">Aperçu des détails</strong>
+              <div id="detailPreviewList" class="admin-preview-details"></div>
+            </div>
+            <div class="form-actions">
+              <button class="primary-btn" type="submit" data-i18n="form_save">Enregistrer</button>
+              <button class="secondary-btn" id="cancelEditProduct" type="button" hidden data-i18n="cancel">Annuler</button>
+              <button class="ghost-btn" id="resetStore" type="button" data-i18n="form_reset">Réinitialiser</button>
+            </div>
+          </form>
+
+          <div class="panel admin-side">
+          <div class="admin-card">
+              <h3 data-i18n="products_admin_title">Produits enregistrés</h3>
+            <div id="adminProductsList" class="stack-list"></div>
+          </div>
+            <div class="admin-card">
+              <h3 data-i18n="announcements_title">Annonces</h3>
+              <div class="announcement-admin-list" id="announcementList"></div>
+            </div>
+            <div class="admin-card">
+              <h3 data-i18n="orders_title">Commandes</h3>
+              <div id="orderFilterBar" class="order-filter-bar" aria-label="Filtrer les commandes">
+                <button class="order-filter-btn is-active" type="button" data-order-filter="all" data-i18n="orders_all">Toutes</button>
+                <button class="order-filter-btn" type="button" data-order-filter="pending" data-i18n="orders_pending">En attente</button>
+                <button class="order-filter-btn" type="button" data-order-filter="approved" data-i18n="orders_approved">Validées</button>
+              </div>
+              <div id="ordersList" class="stack-list"></div>
+            </div>
+            <div class="admin-card">
+            <h3 data-i18n="admin_tip_title">Conseil</h3>
+            <ul class="feature-list compact">
+                <li data-i18n="admin_tip_1">Les photos sont choisies depuis ton appareil, sans URL à copier.</li>
+                <li data-i18n="admin_tip_2">Les données restent locales tant que tu n’ajoutes pas un backend serveur.</li>
+                <li data-i18n="admin_tip_3">Tu peux publier, modifier et supprimer librement les produits et annonces.</li>
+            </ul>
+          </div>
+          </div>
+        </div>
+
+        <div class="panel admin-form announcement-form">
+          <div class="admin-form-header">
+            <div>
+              <p class="section-kicker" data-i18n="announcements_title">Annonces</p>
+              <h3 data-i18n="announcement_add_title">Publier une annonce</h3>
+            </div>
+          </div>
+
+          <p id="announcementMessage" class="admin-form-message" aria-live="polite"></p>
+
+          <label>
+            <span data-i18n="announcement_title_label">Titre</span>
+            <input name="announcementTitle" type="text" placeholder="Promo week-end eFootball" />
+          </label>
+          <label>
+            <span data-i18n="announcement_text_label">Texte</span>
+            <textarea name="announcementText" rows="4" placeholder="Offre spéciale sur les comptes premium..."></textarea>
+          </label>
+          <label>
+            <span data-i18n="announcement_image_label">Image de couverture</span>
+            <div class="upload-box">
+              <div class="upload-actions">
+                <button class="secondary-btn compact" id="announcementImageButton" type="button" data-i18n="choose_image">Choisir une image</button>
+                <span class="upload-note" id="announcementImageName" data-i18n="no_image">Aucune image sélectionnée</span>
+              </div>
+              <input id="announcementImageInput" type="file" accept="image/*" hidden />
+            </div>
+            <input name="announcementImage" type="hidden" />
+          </label>
+          <div class="form-row">
+            <label>
+              <span data-i18n="announcement_status_label">Statut</span>
+              <select name="announcementStatus">
+                  <option value="active" data-i18n="announcement_active">Active</option>
+                  <option value="pending" data-i18n="announcement_pending">En attente</option>
+                  <option value="rejected" data-i18n="announcement_rejected">Refusée</option>
+              </select>
+            </label>
+            <label>
+              <span data-i18n="announcement_priority_label">Priorité</span>
+              <select name="announcementPriority">
+                <option value="high" data-i18n="priority_high">Haute</option>
+                <option value="medium" selected data-i18n="priority_medium">Moyenne</option>
+                <option value="low" data-i18n="priority_low">Faible</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="announcement-preview" id="announcementPreview">
+            <div class="announcement-preview-empty">Aucune annonce pour le moment.</div>
+          </div>
+
+          <button class="primary-btn" id="publishAnnouncementButton" type="button" data-i18n="announcement_publish">Publier l’annonce</button>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>

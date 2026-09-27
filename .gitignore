@@ -1,0 +1,8 @@
+# Local operating-system files are not part of the website.
+Thumbs.db
+Desktop.ini
+*.lnk
+
+# Editor and temporary files.
+.DS_Store
+*.tmp

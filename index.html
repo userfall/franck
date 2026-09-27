@@ -1,0 +1,370 @@
+﻿<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#07111f" />
+    <meta
+      name="description"
+      content="Franckefootball.com - Boutique eFootball premium pour comptes et pièces eFootball, en français et en anglais."
+    />
+    <meta
+      name="keywords"
+      content="eFootball, comptes eFootball, pièces eFootball, Franckefootball, boutique eFootball, WhatsApp"
+    />
+    <meta name="robots" content="index, follow" />
+    <meta property="og:title" content="Franckefootball.com" />
+    <meta
+      property="og:description"
+      content="Boutique eFootball moderne, bilingue FR/EN, avec contact WhatsApp et avis clients."
+    />
+    <meta property="og:type" content="website" />
+    <title>Franckefootball.com</title>
+    <link rel="icon" href="logo.jpeg" type="image/jpeg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body data-page="home">
+    <div class="bg-orb bg-orb-a"></div>
+    <div class="bg-orb bg-orb-b"></div>
+
+    <header class="topbar">
+      <a class="brand" href="#home" aria-label="Franckefootball.com">
+        <span class="brand-mark">
+          <img src="logo.jpeg" alt="" class="brand-logo" />
+        </span>
+        <span>
+          <strong>Franckefootball</strong>
+          <small>eFootball premium shop</small>
+        </span>
+      </a>
+
+      <nav class="nav">
+        <a href="#products" data-i18n="nav_products">Produits</a>
+        <a href="#reviews" data-i18n="nav_reviews">Avis</a>
+        <a href="#contact" data-i18n="nav_contact">Contact</a>
+      </nav>
+
+      <div class="toolbar">
+        <label class="lang-switch" aria-label="Language selector">
+          <span>FR</span>
+          <input id="langToggle" type="checkbox" />
+          <span>EN</span>
+        </label>
+        <a class="ghost-btn" href="admin.html">Admin</a>
+        <a class="ghost-btn" id="whatsappHeader" href="#" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+      </div>
+    </header>
+
+    <main id="home">
+      <section class="hero">
+        <div class="hero-copy">
+          <div class="eyebrow" data-i18n="hero_eyebrow">Boutique eFootball orientée conversion</div>
+          <h1 data-i18n="hero_title">Rapide, claire et crédible pour vendre plus de comptes et de pièces eFootball.</h1>
+          <p data-i18n="hero_text">
+            Une expérience bilingue français/anglais, mobile-first, avec avis visibles, achat simplifié et confiance immédiate.
+          </p>
+
+          <div class="hero-actions">
+            <a class="primary-btn" href="#products" data-i18n="hero_shop">Voir les produits</a>
+            <a class="secondary-btn" id="heroWhatsapp" href="#" target="_blank" rel="noopener noreferrer" data-i18n="hero_whatsapp">
+              Contacter sur WhatsApp
+            </a>
+          </div>
+
+          <div class="proof-strip">
+            <span data-i18n="proof_1">Temps de chargement rapide</span>
+            <span data-i18n="proof_2">Avis clients visibles</span>
+            <span data-i18n="proof_3">Paiement en une page</span>
+            <span data-i18n="proof_4">Sans création de compte</span>
+          </div>
+
+          <div class="hero-stats">
+            <article>
+              <strong>2 s</strong>
+              <span data-i18n="stat_speed">Chargement visé</span>
+            </article>
+            <article>
+              <strong>4.9/5</strong>
+              <span data-i18n="stat_rating">Preuve sociale</span>
+            </article>
+            <article>
+              <strong>1 page</strong>
+              <span data-i18n="stat_checkout">Parcours simplifié</span>
+            </article>
+          </div>
+        </div>
+
+        <div class="hero-panel">
+          <div class="hero-card spotlight">
+            <div class="hero-media">
+              <img src="hero.jpg" alt="Franckefootball.com hero" class="hero-image" />
+              <div class="hero-media-overlay"></div>
+              <div class="hero-floating">
+                <span class="hero-floating-mark">
+                  <img src="logo.jpeg" alt="" class="hero-floating-logo" />
+                </span>
+                <div>
+                  <strong>Franckefootball</strong>
+                  <small data-i18n="hero_chip">Nouvelle plateforme</small>
+                </div>
+              </div>
+            </div>
+            <div class="hero-card-copy">
+              <h2 data-i18n="hero_panel_title">Franckefootball.com</h2>
+              <p data-i18n="hero_panel_text">
+                Une vitrine pensée pour convertir rapidement, rassurer les visiteurs et garder l’achat très simple.
+              </p>
+              <div class="hero-mini-grid">
+                <div class="hero-mini">
+                  <strong>01</strong>
+                  <span data-i18n="hero_mini_1">Produit clair</span>
+                </div>
+                <div class="hero-mini">
+                  <strong>02</strong>
+                  <span data-i18n="hero_mini_2">WhatsApp direct</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section showcase">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker" data-i18n="showcase_kicker">Preuves</p>
+            <h2 data-i18n="showcase_title">Les preuves qui rassurent avant l'achat</h2>
+          </div>
+          <p data-i18n="showcase_text">
+            On met en avant la vitesse, les avis, la sécurité et la simplicité du paiement pour inspirer confiance immédiatement.
+          </p>
+        </div>
+
+        <div class="showcase-grid">
+          <article class="showcase-card showcase-card-large showcase-card-hero">
+            <div class="showcase-overlay">
+              <span class="pill">Speed</span>
+              <h3 data-i18n="showcase_1_title">Page d'accueil forte</h3>
+              <p data-i18n="showcase_1_text">Un message immédiat et un produit phare pour capter l'attention.</p>
+            </div>
+          </article>
+
+          <article class="showcase-card visual-card visual-card-a">
+            <div class="showcase-visual">
+              <div class="metric-box">
+                <strong>4.9</strong>
+                <span>Rating</span>
+              </div>
+            </div>
+            <div class="showcase-overlay">
+              <span class="pill">Trust</span>
+              <h3 data-i18n="showcase_2_title">Avis visibles</h3>
+              <p data-i18n="showcase_2_text">Les témoignages servent de preuve sociale tout au long du parcours.</p>
+            </div>
+          </article>
+
+          <article class="showcase-card visual-card visual-card-b">
+            <div class="showcase-visual">
+              <div class="mini-stat mini-stat-top">+220</div>
+              <div class="mini-stat mini-stat-bottom">1 page</div>
+            </div>
+            <div class="showcase-overlay">
+              <span class="pill">Secure</span>
+              <h3 data-i18n="showcase_3_title">Sécurité et garanties</h3>
+              <p data-i18n="showcase_3_text">Des repères simples pour inspirer confiance avant la prise de contact.</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section" id="products">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker" data-i18n="products_kicker">Catalogue</p>
+            <h2 data-i18n="products_title">Produits en vedette</h2>
+          </div>
+          <p data-i18n="products_text">
+            Chaque fiche peut afficher plusieurs captures, la description complète, le prix, les infos importantes et le bouton Acheter.
+          </p>
+        </div>
+        <div id="productGrid" class="product-grid"></div>
+      </section>
+
+      <section class="section two-col" id="trust">
+        <div class="panel glass">
+          <p class="section-kicker" data-i18n="design_kicker">Parcours</p>
+          <h2 data-i18n="design_title">Peu de catégories, un achat simple</h2>
+          <ul class="feature-list">
+            <li data-i18n="design_1">Une page d'accueil forte avec un produit phare bien mis en avant.</li>
+            <li data-i18n="design_2">Des fiches claires avec photos, infos importantes et avis visibles.</li>
+            <li data-i18n="design_3">Un checkout rapide, sans compte obligatoire et sans détour inutile.</li>
+          </ul>
+        </div>
+
+        <div class="panel glass">
+          <p class="section-kicker" data-i18n="trust_kicker">Confiance</p>
+          <h2 data-i18n="trust_title">Les repères qui augmentent la conversion</h2>
+          <ul class="feature-list">
+            <li data-i18n="trust_1">Badges de confiance, sécurité et garanties visibles.</li>
+            <li data-i18n="trust_2">Preuves sociales partout: notes, photos clients et ventes.</li>
+            <li data-i18n="trust_3">Parcours d'achat en une seule page, rapide sur mobile.</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="section review-session" id="reviews">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker" data-i18n="reviews_kicker">Avis clients</p>
+            <h2 data-i18n="reviews_title">Commentaires et témoignages</h2>
+          </div>
+          <p data-i18n="reviews_text">
+            Une zone d'avis propre et simple pour rassurer les visiteurs avant l'achat.
+          </p>
+        </div>
+
+        <div class="review-shell">
+          <form id="reviewForm" class="panel review-form">
+            <p class="section-kicker" data-i18n="reviews_form_kicker">Laisser un avis</p>
+            <h3 data-i18n="reviews_form_title">Votre retour aide les prochains clients</h3>
+            <label>
+              <span data-i18n="review_name">Nom</span>
+              <input name="name" type="text" required placeholder="Franck" />
+            </label>
+            <label>
+              <span data-i18n="review_rating">Note</span>
+              <select name="rating" required>
+                <option value="5">5 / 5</option>
+                <option value="4">4 / 5</option>
+                <option value="3">3 / 5</option>
+              </select>
+            </label>
+            <label>
+              <span data-i18n="review_text_label">Commentaire</span>
+              <textarea name="message" rows="5" required placeholder="Laissez votre avis..."></textarea>
+            </label>
+            <p class="purchase-form-message" id="reviewFormMessage" aria-live="polite"></p>
+            <button class="primary-btn" type="submit" data-i18n="review_submit">Publier</button>
+          </form>
+
+          <div class="review-showcase">
+            <div class="review-showcase-head">
+              <span class="pill">★</span>
+              <div>
+                <strong data-i18n="reviews_title">Commentaires et témoignages</strong>
+                <p data-i18n="reviews_text">Une zone d'avis propre et simple pour rassurer les visiteurs avant l'achat.</p>
+              </div>
+            </div>
+            <div id="reviewList" class="review-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section announcement-public" aria-label="Annonces" id="announcements">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">Actualités</p>
+            <h2>Offres et promotions</h2>
+          </div>
+          <p>Des offres visibles, propres et rapides à lire pour accélérer la conversion.</p>
+        </div>
+        <div id="announcementPublicList" class="announcement-public-grid"></div>
+      </section>
+
+      <section class="section" id="contact">
+        <div class="contact-banner">
+          <div>
+            <p class="section-kicker" data-i18n="contact_kicker">Contact</p>
+            <h2 data-i18n="contact_title">Toujours joignable sur WhatsApp</h2>
+            <p data-i18n="contact_text">
+              Le bouton ouvre directement une conversation vers le numéro indiqué pour accélérer la vente.
+            </p>
+          </div>
+          <a class="primary-btn" id="contactWhatsapp" href="#" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="footer-inner">
+        <div>
+          <strong>Franckefootball</strong>
+          <p>Accounts & coins eFootball premium.</p>
+        </div>
+
+        <div class="social-badges" aria-label="Réseaux sociaux">
+          <span>Instagram</span>
+          <span>TikTok</span>
+          <span>WhatsApp</span>
+        </div>
+      </div>
+    </footer>
+
+    <template id="productTemplate">
+      <article class="product-card">
+        <div class="product-gallery"></div>
+        <div class="product-body">
+          <div class="product-meta">
+            <span class="pill product-type"></span>
+            <span class="pill product-badge"></span>
+          </div>
+          <h3 class="product-title"></h3>
+          <p class="product-price"></p>
+          <p class="product-description"></p>
+          <div class="product-details"></div>
+          <div class="product-actions">
+            <a class="secondary-btn product-whatsapp" href="#" target="_blank" rel="noopener noreferrer"></a>
+            <button class="primary-btn product-buy" type="button"></button>
+          </div>
+        </div>
+      </article>
+    </template>
+
+    <dialog class="purchase-dialog" id="purchaseDialog" aria-labelledby="purchaseDialogTitle">
+      <form id="purchaseForm" class="panel purchase-form" method="dialog">
+        <div class="purchase-dialog-header">
+          <div>
+            <p class="section-kicker" data-i18n="order_kicker">Commande</p>
+            <h2 id="purchaseDialogTitle" data-i18n="order_title">Demande d’achat</h2>
+          </div>
+          <button class="dialog-close" type="button" data-purchase-close aria-label="Fermer">×</button>
+        </div>
+        <p class="purchase-product-name" id="purchaseProductName"></p>
+        <p class="purchase-dialog-text" data-i18n="order_text">
+          Remplis le formulaire pour envoyer une demande liée à ce produit, sans création de compte.
+        </p>
+        <input id="purchaseProductId" name="productId" type="hidden" />
+        <label>
+          <span data-i18n="order_name">Votre nom</span>
+          <input name="customerName" type="text" required autocomplete="name" />
+        </label>
+        <label>
+          <span data-i18n="order_whatsapp">Numéro WhatsApp</span>
+          <input name="customerPhone" type="tel" required autocomplete="tel" />
+        </label>
+        <label>
+          <span data-i18n="order_email">E-mail</span>
+          <input name="customerEmail" type="email" autocomplete="email" />
+        </label>
+        <label>
+          <span data-i18n="order_note">Message</span>
+          <textarea name="message" rows="4" data-i18n-placeholder="order_note_placeholder"></textarea>
+        </label>
+        <p class="purchase-form-message" id="purchaseFormMessage" aria-live="polite"></p>
+        <div class="form-actions">
+          <button class="secondary-btn" type="button" data-purchase-close data-i18n="cancel">Annuler</button>
+          <button class="primary-btn" type="submit" data-i18n="order_submit">Envoyer la demande</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
+
