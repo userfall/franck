@@ -15,16 +15,29 @@
     />
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body>
+  <body data-page="login">
     <main class="auth-main">
       <section class="panel glass auth-card">
         <p class="section-kicker">Administration locale</p>
-        <h1>Tableau de bord Franckefootball</h1>
+        <h1>Connexion au tableau de bord</h1>
         <p>
-          Cette version statique conserve les données dans le navigateur utilisé. Elle ne remplace pas un système d’authentification serveur.
+          Connecte-toi avec l’un des deux comptes administrateur enregistrés dans le projet.
         </p>
-        <a class="primary-btn" href="admin.html">Ouvrir l’admin</a>
+        <form id="authForm" class="auth-form">
+          <label>
+            <span>E-mail</span>
+            <input name="email" type="email" required autocomplete="email" />
+          </label>
+          <label>
+            <span>Mot de passe</span>
+            <input name="password" type="password" required autocomplete="current-password" />
+          </label>
+          <p id="authMessage" class="auth-message" aria-live="polite"></p>
+          <button class="primary-btn" type="submit">Se connecter</button>
+        </form>
+        <a class="secondary-btn auth-back-link" href="index.html">Retour au site</a>
       </section>
     </main>
+    <script type="module" src="auth.js"></script>
   </body>
 </html>

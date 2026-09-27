@@ -41,6 +41,7 @@
           <span>EN</span>
         </label>
         <a class="primary-btn" href="index.html" target="_blank" rel="noopener noreferrer" data-i18n="admin_view_site">Voir sur le site</a>
+        <span class="user-chip" id="adminUserEmail" aria-live="polite"></span>
         <button class="ghost-btn" id="adminLogoutButton" type="button" data-i18n="logout">Déconnexion</button>
       </div>
     </header>
@@ -115,7 +116,7 @@
             <div class="upload-box">
               <div class="upload-actions">
                 <button class="primary-btn compact" id="productImageButton" type="button" data-i18n="choose_photos">Choisir les photos</button>
-                <span class="upload-note" id="productImageCount" data-i18n="upload_limit">Jusqu’à 4 images, optimisées automatiquement</span>
+                <span class="upload-note" id="productImageCount" data-i18n="upload_limit">Jusqu’à 4 images, prêtes à publier</span>
               </div>
               <input id="productImageInput" type="file" accept="image/*" multiple hidden />
             </div>
@@ -230,6 +231,7 @@
       </section>
     </main>
 
+    <script type="module" src="auth.js"></script>
     <script type="module" src="app.js"></script>
   </body>
 </html>

@@ -273,7 +273,7 @@ const translations = {
     logout: "Déconnexion",
     new_product: "Nouveau produit",
     choose_photos: "Choisir les photos",
-    upload_limit: "Jusqu’à 4 images, optimisées automatiquement",
+    upload_limit: "Jusqu’à 4 images, prêtes à publier",
     upload_ready_one: "photo prête à publier",
     upload_ready_many: "photos prêtes à publier",
     announcement_active: "Active",
@@ -334,7 +334,7 @@ const translations = {
     trust_title: "Signals that increase conversion",
     trust_1: "Trust badges, security, and guarantees are visible.",
     trust_2: "Social proof everywhere: ratings, customer photos, and sales.",
-    trust_3: "A one-page purchase flow optimized for mobile.",
+    trust_3: "A one-page purchase flow designed for mobile.",
     reviews_kicker: "Customer reviews",
     reviews_title: "Comments and testimonials",
     reviews_text: "A clean and simple review area to reassure visitors before purchase.",
@@ -406,7 +406,7 @@ const translations = {
     logout: "Log out",
     new_product: "New product",
     choose_photos: "Choose photos",
-    upload_limit: "Up to 4 images, optimized automatically",
+    upload_limit: "Up to 4 images, ready to publish",
     upload_ready_one: "photo ready to publish",
     upload_ready_many: "photos ready to publish",
     announcement_active: "Active",
@@ -468,7 +468,6 @@ const reviewList = document.getElementById("reviewList");
 const reviewForm = document.getElementById("reviewForm");
 const productTemplate = document.getElementById("productTemplate");
 const langToggle = document.getElementById("langToggle");
-const adminLogoutButton = document.getElementById("adminLogoutButton");
 const productForm = document.getElementById("productForm");
 const productFormTitle = document.getElementById("productFormTitle");
 const adminFormMessage = document.getElementById("adminFormMessage");
@@ -644,7 +643,7 @@ function updateProductImageCount() {
     : `${count} photo${count > 1 ? "s" : ""} prête${count > 1 ? "s" : ""} à publier`;
 }
 
-function optimizeImageFile(file) {
+function prepareImageFile(file) {
   const maxDimension = 1280;
   const outputType = "image/webp";
 
@@ -664,8 +663,8 @@ function optimizeImageFile(file) {
         return;
       }
       context.drawImage(image, 0, 0, canvas.width, canvas.height);
-      const optimized = canvas.toDataURL(outputType, 0.78);
-      resolve(optimized.startsWith("data:image/webp") ? optimized : canvas.toDataURL("image/jpeg", 0.78));
+      const preparedData = canvas.toDataURL(outputType, 0.78);
+      resolve(preparedData.startsWith("data:image/webp") ? preparedData : canvas.toDataURL("image/jpeg", 0.78));
     };
 
     image.onerror = () => {
@@ -691,9 +690,9 @@ async function addProductImages(files) {
 
   try {
     const selectedFiles = Array.from(files).slice(0, availableSlots);
-    const optimizedImages = await Promise.all(selectedFiles.map(optimizeImageFile));
-    imagesField.value = [...currentImages, ...optimizedImages].join("\n");
-    setAdminFormMessage(`${optimizedImages.length} photo${optimizedImages.length > 1 ? "s" : ""} ajoutée${optimizedImages.length > 1 ? "s" : ""}.`, true);
+    const preparedImages = await Promise.all(selectedFiles.map(prepareImageFile));
+    imagesField.value = [...currentImages, ...preparedImages].join("\n");
+    setAdminFormMessage(`${preparedImages.length} photo${preparedImages.length > 1 ? "s" : ""} ajoutée${preparedImages.length > 1 ? "s" : ""}.`, true);
     renderFormPreviews();
   } catch (error) {
     setAdminFormMessage(error.message || "Impossible de préparer cette image.", false);
@@ -705,7 +704,7 @@ async function setAnnouncementImage(file) {
   if (!file || !imageField) return;
 
   try {
-    imageField.value = await optimizeImageFile(file);
+    imageField.value = await prepareImageFile(file);
     if (announcementImageName) announcementImageName.textContent = file.name;
     renderAnnouncementPreview();
   } catch (error) {
@@ -1512,12 +1511,6 @@ if (cancelEditProductButton) {
 if (langToggle) {
   langToggle.addEventListener("change", () => {
     applyLanguage(langToggle.checked ? "en" : "fr");
-  });
-}
-
-if (adminLogoutButton) {
-  adminLogoutButton.addEventListener("click", () => {
-    window.location.href = "index.html";
   });
 }
 
