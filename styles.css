@@ -2223,3 +2223,57 @@ textarea {
     flex-basis: calc(100% - 8px);
   }
 }
+
+.carousel-shell {
+  position: relative;
+  min-width: 0;
+}
+
+.carousel-arrow {
+  position: absolute;
+  z-index: 3;
+  top: 50%;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 1px solid rgba(255, 216, 77, 0.4);
+  border-radius: 50%;
+  background: rgba(7, 17, 31, 0.92);
+  color: var(--yellow);
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+  transform: translateY(-50%);
+  transition: opacity 180ms ease, background 180ms ease, border-color 180ms ease;
+}
+
+.carousel-arrow:hover:not(:disabled) {
+  border-color: var(--yellow);
+  background: rgba(255, 216, 77, 0.14);
+}
+
+.carousel-arrow:disabled {
+  cursor: default;
+  opacity: 0.28;
+}
+
+.carousel-arrow-prev {
+  left: -14px;
+}
+
+.carousel-arrow-next {
+  right: -14px;
+}
+
+.carousel-shell:not(.has-overflow) .carousel-arrow {
+  visibility: hidden;
+}
+
+@media (max-width: 767px) {
+  .carousel-arrow {
+    display: none;
+  }
+}

@@ -193,7 +193,15 @@
             Chaque fiche peut afficher plusieurs captures, la description complète, le prix, les infos importantes et le bouton Acheter.
           </p>
         </div>
-        <div id="productGrid" class="product-grid"></div>
+        <div class="carousel-shell" data-carousel-shell>
+          <button class="carousel-arrow carousel-arrow-prev" type="button" data-carousel-prev aria-label="Produits précédents" title="Produits précédents" aria-controls="productGrid">
+            <span aria-hidden="true">&#8592;</span>
+          </button>
+          <div id="productGrid" class="product-grid" data-carousel="products"></div>
+          <button class="carousel-arrow carousel-arrow-next" type="button" data-carousel-next aria-label="Produits suivants" title="Produits suivants" aria-controls="productGrid">
+            <span aria-hidden="true">&#8594;</span>
+          </button>
+        </div>
       </section>
 
       <section class="section two-col" id="trust">
@@ -274,7 +282,15 @@
           </div>
           <p>Des offres visibles, propres et rapides à lire pour accélérer la conversion.</p>
         </div>
-        <div id="announcementPublicList" class="announcement-public-grid"></div>
+        <div class="carousel-shell" data-carousel-shell>
+          <button class="carousel-arrow carousel-arrow-prev" type="button" data-carousel-prev aria-label="Annonces précédentes" title="Annonces précédentes" aria-controls="announcementPublicList">
+            <span aria-hidden="true">&#8592;</span>
+          </button>
+          <div id="announcementPublicList" class="announcement-public-grid" data-carousel="announcements"></div>
+          <button class="carousel-arrow carousel-arrow-next" type="button" data-carousel-next aria-label="Annonces suivantes" title="Annonces suivantes" aria-controls="announcementPublicList">
+            <span aria-hidden="true">&#8594;</span>
+          </button>
+        </div>
       </section>
 
       <section class="section" id="contact">

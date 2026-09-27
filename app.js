@@ -959,6 +959,7 @@ function renderAnnouncementsPublic() {
 
   if (!announcements.length) {
     announcementPublicList.innerHTML = '<div class="announcement-admin-item"><small>Aucune annonce active.</small></div>';
+    refreshCarouselControls();
     return;
   }
 
@@ -978,6 +979,7 @@ function renderAnnouncementsPublic() {
       `;
     })
     .join("");
+  refreshCarouselControls();
 }
 
 function saveState() {
@@ -1113,6 +1115,7 @@ function renderProducts() {
   if (!appState.products.length) {
     productGrid.innerHTML = `<div class="panel"><p>${translate("empty_products")}</p></div>`;
   }
+  refreshCarouselControls();
 }
 
 function renderReviews() {
@@ -1643,6 +1646,51 @@ function escapeAttr(value) {
   return escapeHtml(value).replaceAll("`", "&#096;");
 }
 
+function setupCarouselControls() {
+  document.querySelectorAll("[data-carousel]").forEach((rail) => {
+    if (rail.dataset.carouselReady === "true") return;
+
+    const shell = rail.closest("[data-carousel-shell]");
+    const previousButton = shell?.querySelector("[data-carousel-prev]");
+    const nextButton = shell?.querySelector("[data-carousel-next]");
+    if (!shell || !previousButton || !nextButton) return;
+
+    const updateControls = () => {
+      const maxScroll = Math.max(0, rail.scrollWidth - rail.clientWidth);
+      const hasOverflow = maxScroll > 2;
+      shell.classList.toggle("has-overflow", hasOverflow);
+      previousButton.disabled = !hasOverflow || rail.scrollLeft <= 2;
+      nextButton.disabled = !hasOverflow || rail.scrollLeft >= maxScroll - 2;
+    };
+
+    const scrollRail = (direction) => {
+      rail.scrollBy({
+        left: direction * Math.max(rail.clientWidth * 0.82, 280),
+        behavior: "smooth",
+      });
+    };
+
+    previousButton.addEventListener("click", () => scrollRail(-1));
+    nextButton.addEventListener("click", () => scrollRail(1));
+    rail.addEventListener("scroll", updateControls, { passive: true });
+    window.addEventListener("resize", updateControls);
+
+    if (typeof ResizeObserver === "function") {
+      new ResizeObserver(updateControls).observe(rail);
+    }
+
+    rail.updateCarouselControls = updateControls;
+    rail.dataset.carouselReady = "true";
+    updateControls();
+  });
+}
+
+function refreshCarouselControls() {
+  document.querySelectorAll("[data-carousel]").forEach((rail) => {
+    rail.updateCarouselControls?.();
+  });
+}
+
 function subscribeToAnnouncements() {
   onValue(ref(firebaseDatabase, ANNOUNCEMENTS_PATH), (snapshot) => {
     const data = snapshot.val() || {};
@@ -1729,3 +1777,4 @@ subscribeToProducts();
 subscribeToOrders();
 subscribeToReviews();
 subscribeToAnnouncements();
+setupCarouselControls();
