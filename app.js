@@ -1,9 +1,15 @@
+import { onValue, ref, set } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-database.js";
+import { firebaseAuth, firebaseAuthReady, firebaseDatabase } from "./firebase-config.js";
+
 const WHATSAPP_NUMBER = "22879420932";
 const STORAGE_KEY = "franckefootball_store_v1";
 const ORDER_KEY = "franckefootball_orders_v1";
 const REVIEW_KEY = "franckefootball_reviews_v1";
 const ANNOUNCEMENT_KEY = "franckefootball_announcements_v1";
 const LANG_KEY = "franckefootball_lang_v1";
+const ANNOUNCEMENTS_PATH = "announcements";
+let remoteAnnouncements = null;
+let remoteAnnouncementsReady = false;
 
 function createId(prefix) {
   if (globalThis.crypto?.randomUUID) {
@@ -256,7 +262,7 @@ const translations = {
     orders_approved: "Validées",
     admin_tip_title: "Conseil",
     admin_tip_1: "Les photos sont choisies depuis ton appareil, sans URL à copier.",
-    admin_tip_2: "Les données restent locales tant que tu n’ajoutes pas un backend serveur.",
+    admin_tip_2: "Les annonces sont synchronisées entre les appareils via Firebase.",
     admin_tip_3: "Tu peux publier, modifier et supprimer librement les produits et annonces.",
     form_name: "Nom du produit",
     form_type: "Type",
@@ -389,7 +395,7 @@ const translations = {
     orders_approved: "Approved",
     admin_tip_title: "Tip",
     admin_tip_1: "Choose photos from your device without copying an URL.",
-    admin_tip_2: "Data stays local until you connect a server backend.",
+    admin_tip_2: "Announcements are synchronized across devices with Firebase.",
     admin_tip_3: "Publish, edit, and remove products and announcements freely.",
     form_name: "Product name",
     form_type: "Type",
@@ -560,12 +566,28 @@ function loadReviews() {
 }
 
 function loadAnnouncements() {
+  if (remoteAnnouncementsReady) return remoteAnnouncements;
   const parsed = readStorageJson(ANNOUNCEMENT_KEY, null);
   return Array.isArray(parsed) && parsed.length ? parsed : structuredClone(defaultAnnouncements);
 }
 
 function saveAnnouncements(announcements) {
-  return writeStorageJson(ANNOUNCEMENT_KEY, announcements);
+  const normalized = Array.isArray(announcements) ? announcements.filter(Boolean) : [];
+  const localSaved = writeStorageJson(ANNOUNCEMENT_KEY, normalized);
+  remoteAnnouncements = normalized;
+  remoteAnnouncementsReady = true;
+
+  const payload = {
+    _meta: { updatedAt: new Date().toISOString() },
+    ...Object.fromEntries(normalized.map((announcement) => [announcement.id, announcement])),
+  };
+
+  return firebaseAuthReady.then((user) => {
+    if (!user) return localSaved;
+    return set(ref(firebaseDatabase, ANNOUNCEMENTS_PATH), payload)
+      .then(() => true)
+      .catch(() => localSaved);
+  });
 }
 
 function loadReviewsFromStorage() {
@@ -849,6 +871,7 @@ function renderAnnouncementsAdmin() {
             <button type="button" data-announcement-action="active" data-announcement-id="${announcement.id}">${currentLanguage === "en" ? "Active" : "Active"}</button>
             <button type="button" data-announcement-action="pending" data-announcement-id="${announcement.id}">${currentLanguage === "en" ? "Pending" : "En attente"}</button>
             <button type="button" data-announcement-action="rejected" data-announcement-id="${announcement.id}">${currentLanguage === "en" ? "Rejected" : "Refusée"}</button>
+            <button type="button" data-announcement-action="remove" data-announcement-id="${announcement.id}">${translate("remove")}</button>
           </div>
         </div>
       `;
@@ -856,12 +879,14 @@ function renderAnnouncementsAdmin() {
     .join("");
 
   announcementList.querySelectorAll("button[data-announcement-action]").forEach((button) => {
-    button.addEventListener("click", () => {
+    button.addEventListener("click", async () => {
       const id = button.getAttribute("data-announcement-id");
       const action = button.getAttribute("data-announcement-action");
       const announcements = loadAnnouncements();
-      const next = announcements.map((entry) => (entry.id === id ? { ...entry, status: action } : entry));
-      saveAnnouncements(next);
+      const next = action === "remove"
+        ? announcements.filter((entry) => entry.id !== id)
+        : announcements.map((entry) => (entry.id === id ? { ...entry, status: action } : entry));
+      await saveAnnouncements(next);
       renderAnnouncementsAdmin();
       renderAnnouncementsPublic();
     });
@@ -1402,7 +1427,7 @@ purchaseDialog?.addEventListener("click", (event) => {
 });
 
 if (publishAnnouncementButton) {
-  publishAnnouncementButton.addEventListener("click", () => {
+  publishAnnouncementButton.addEventListener("click", async () => {
     const titleInput = document.querySelector('input[name="announcementTitle"]');
     const textInput = document.querySelector('textarea[name="announcementText"]');
     const imageInput = document.querySelector('input[name="announcementImage"]');
@@ -1437,7 +1462,7 @@ if (publishAnnouncementButton) {
       ...loadAnnouncements(),
     ];
 
-    const saved = saveAnnouncements(nextAnnouncements);
+    const saved = await saveAnnouncements(nextAnnouncements);
     renderAnnouncementsAdmin();
     renderAnnouncementsPublic();
     renderAnnouncementPreview();
@@ -1445,7 +1470,7 @@ if (publishAnnouncementButton) {
     if (announcementMessage) {
       announcementMessage.textContent = saved
         ? (currentLanguage === "en" ? "Announcement published successfully." : "Annonce publiée avec succès.")
-        : (currentLanguage === "en" ? "Announcement shown temporarily: local storage is unavailable." : "Annonce affichée temporairement: le stockage local est indisponible.");
+        : (currentLanguage === "en" ? "Announcement could not be saved." : "L’annonce n’a pas pu être enregistrée.");
       announcementMessage.classList.remove("is-error");
       announcementMessage.classList.toggle("is-success", saved);
       announcementMessage.classList.toggle("is-error", !saved);
@@ -1478,7 +1503,7 @@ if (resetStoreButton) {
     if (!window.confirm(currentLanguage === "en" ? "Reset all local store data?" : "Réinitialiser toutes les données locales de la boutique ?")) return;
     editingProductId = null;
     Object.assign(appState, normalizeState(structuredClone(defaultState)));
-    saveAnnouncements(structuredClone(defaultAnnouncements));
+    await saveAnnouncements(structuredClone(defaultAnnouncements));
     await saveState();
     await saveOrders([]);
     await saveReviews(structuredClone(defaultReviews));
@@ -1527,6 +1552,23 @@ function escapeAttr(value) {
   return escapeHtml(value).replaceAll("`", "&#096;");
 }
 
+function subscribeToAnnouncements() {
+  onValue(ref(firebaseDatabase, ANNOUNCEMENTS_PATH), (snapshot) => {
+    if (!snapshot.exists()) return;
+
+    const data = snapshot.val() || {};
+    remoteAnnouncements = Object.entries(data)
+      .filter(([key, value]) => key !== "_meta" && value && typeof value === "object")
+      .map(([, value]) => value);
+    remoteAnnouncementsReady = true;
+    writeStorageJson(ANNOUNCEMENT_KEY, remoteAnnouncements);
+    renderAnnouncementsAdmin();
+    renderAnnouncementsPublic();
+  }, () => {
+    remoteAnnouncementsReady = false;
+  });
+}
+
 applyLanguage(currentLanguage);
 syncStaticLinks();
 renderProducts();
@@ -1536,6 +1578,7 @@ renderAnnouncementsAdmin();
 renderAnnouncementsPublic();
 updateAdminStats();
 resetProductForm("create");
+subscribeToAnnouncements();
 if (document.querySelector('input[name="announcementTitle"]')) {
   renderAnnouncementPreview();
 }
